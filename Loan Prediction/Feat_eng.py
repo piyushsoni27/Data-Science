@@ -11,8 +11,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-train = pd.read_csv("/media/piyush//New Volume/Data Science/loan prediction /data//train.csv")
-test = pd.read_csv("/media/piyush//New Volume/Data Science/loan prediction /data//test.csv")
+train = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//train.csv")
+test = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//test.csv")
 
 train_len = train.shape[0]
 
@@ -79,3 +79,6 @@ train_final = total[:train_len]
 test_final = total[train_len:]
 
 test_final.drop("Loan_Status", axis =1, inplace=True)
+
+train_final.to_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//train_final.csv")
+test_final.to_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//test_final.csv")
