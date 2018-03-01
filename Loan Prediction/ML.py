@@ -12,7 +12,7 @@ from sklearn import metrics
 from xgboost import XGBClassifier
 
 
-def classification_model(model, data, predictors, outcome):
+def classification_model(model, data, predictors, outcome, test_data = None, submit=False, filepath=None):
 
     model.fit(data[predictors], data[outcome])
 
@@ -38,13 +38,25 @@ def classification_model(model, data, predictors, outcome):
 
     #Fit the model again so that it can be referred outside the function:
     model.fit(data[predictors], data[outcome])
+    
+    if(submit):
+        sample = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/sample.csv")
+        sample.Loan_ID = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/test.csv").Loan_ID
+        s = model.predict(test_data[predictors])
+        sample.Loan_Status = s
+
+        sample.Loan_Status[sample.Loan_Status==1] = 'Y'
+        sample.Loan_Status[sample.Loan_Status==0] = 'N'
+
+        sample.to_csv(filepath, index=False, header=True)
+
 
 
 train = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//train_final.csv")
-test = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//test.csv")
+test = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data//test_final.csv")
 
-# train.drop(["Unnamed: 0","index"], axis=1, inplace=True)
-# test.drop(["Unnamed: 0","index"], axis=1, inplace=True)
+train.drop(["Unnamed: 0","index"], axis=1, inplace=True)
+test.drop(["Unnamed: 0","index"], axis=1, inplace=True)
 
 ## Convert categorical to numeric variables
 ## LabelEncoder --> Ordinal variables
@@ -56,17 +68,22 @@ le = LabelEncoder()
 for i in cat_var:
     train[i] = le.fit_transform(train[i])
 
+    
+for i in cat_var:
+    test[i] = le.fit_transform(test[i])
 
 ## Logistic Regression
 print("Logistic Regression:")
+
 outcome_var = "Loan_Status"
+
 model = LogisticRegression()
 
 predictor_var = ["Credit_History"]
 classification_model(model, train, predictor_var, outcome_var)
 
 predictor_var = ['Credit_History','Education','Married','Self_Employed','Property_Area']
-classification_model(model, train, predictor_var, outcome_var)
+classification_model(model, train, predictor_var, outcome_var, test_data=test, submit=True, filepath="/media/piyush/New Volume/Data Science/Loan Prediction/data/logistic.csv")
 
 ## Decision Tree
 print("\nDecision Tree:")
@@ -115,6 +132,3 @@ predictor_var = ['Credit_History', 'Dependents', 'Education', 'Gender', 'LoanAmo
        'Loan_Amount_Term', 'Married', 'Property_Area',
        'Self_Employed', 'total_income']
 classification_model(model, train, predictor_var, outcome_var)
-
-
-

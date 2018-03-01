@@ -14,7 +14,7 @@ import xgboost as xgb
 from xgboost.sklearn import XGBClassifier
 
 from sklearn import cross_validation, metrics   #Additional scklearn functions
-from sklearn.grid_search import GridSearchCV   #Perforing grid search
+from sklearn.model_selection import GridSearchCV   #Perforing grid search
 
 import matplotlib.pylab as plt
 from matplotlib.pylab import rcParams
@@ -41,8 +41,8 @@ def modelfit(alg,data, predictors, outcome, useTrainCV = True, cv_folds=5, early
     print("AUC Score (Train): %f" % metrics.roc_auc_score(data[outcome], data_predprob))
     
 
-train = pd.read_csv("D:\\Timepass\Loan Predictor\Data\\train_final.csv")
-test = pd.read_csv("D:\\Timepass\Loan Predictor\Data\\test_final.csv")
+train = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/train_final.csv")
+test = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/test_final.csv")
 
 train.drop(["Unnamed: 0","index"], axis=1, inplace=True)
 test.drop(["Unnamed: 0","index"], axis=1, inplace=True)
@@ -54,7 +54,9 @@ le = LabelEncoder()
 for i in cat_var:
     train[i] = le.fit_transform(train[i])
     
-
+for i in cat_var:
+    test[i] = le.fit_transform(test[i])
+    
 outcome_var = "Loan_Status"
 
 """
@@ -75,7 +77,7 @@ Approach for XGBoost parameter tunning
 
 ### Fix learning rate and number of estimators for tuning tree-based parameters
 
-print("\nXGBoost classifier Fix learning rate")
+print("\nXGBoost classifier without tunning(xgb1)")
 predictor_var = ['Credit_History', 'Dependents', 'Education', 'Gender', 'LoanAmount',
        'Loan_Amount_Term', 'Married', 'Property_Area',
        'Self_Employed', 'total_income']
@@ -94,30 +96,209 @@ xgb1 = XGBClassifier(
  seed=27)
 
 modelfit(xgb1, train, predictor_var, outcome_var)
+"""
+Model Report
+Accuracy : 0.842
+AUC Score (Train): 0.883966
+"""
 
 ###  Tune max_depth and min_child_weight( optimum around 5 for both)
 ## It takes very much time
-"""
+
 param_test1 = {
- 'max_depth': [4,5,6],
- 'min_child_weight':[4,5,6]
+ #'max_depth': np.arange(3,10,2),        #Optimum value comes out as "7"
+ 'max_depth': [6, 7, 8],             #Checking for smaller interval around optimum value
+ #'min_child_weight': np.arange(1,6,2)   #Optimum value comes out as "3"
+ 'min_child_weight': [2, 3, 4]      #Checking for smaller interval around optimum value
 }
 gsearch1 = GridSearchCV(estimator = XGBClassifier( learning_rate =0.1, n_estimators=140, max_depth=5,
  min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8,
  objective= 'binary:logistic', nthread=4, scale_pos_weight=1, seed=27), 
- param_grid = param_test1, scoring='roc_auc',n_jobs=4,iid=False, cv=5)
-gsearch1.fit(train[predictor_var],train[outcome_var])
-gsearch1.grid_scores_, gsearch1.best_params_, gsearch1.best_score_
-"""
+ param_grid = param_test1, scoring='roc_auc',n_jobs=-1,iid=False, cv=5)
+#gsearch1.fit(train[predictor_var],train[outcome_var])
+#print(gsearch1.grid_scores_, gsearch1.best_params_, gsearch1.best_score_)
 
+"""
+Optimum values: 
+    'max_depth' --> 7 
+    'min_child_weight' --> 3 
+"""
 ## Tune Gamma
 print("Tunning Gamma:")
 param_test3 = {
  'gamma':[i/10.0 for i in range(0,5)]
 }
-gsearch3 = GridSearchCV(estimator = XGBClassifier( learning_rate =0.1, n_estimators=140, max_depth=4,
- min_child_weight=6, gamma=0, subsample=0.8, colsample_bytree=0.8,
+gsearch3 = GridSearchCV(estimator = XGBClassifier( learning_rate =0.1, n_estimators=140, max_depth=7,
+ min_child_weight=3, gamma=0, subsample=0.8, colsample_bytree=0.8,
  objective= 'binary:logistic', nthread=4, scale_pos_weight=1,seed=27), 
- param_grid = param_test3, scoring='roc_auc',n_jobs=4,iid=False, cv=5)
-gsearch3.fit(train[predictor_var],train[outcome_var])
-gsearch3.grid_scores_, gsearch3.best_params_, gsearch3.best_score_
+ param_grid = param_test3, scoring='roc_auc',n_jobs=1,iid=False, cv=5)
+#gsearch3.fit(train[predictor_var],train[outcome_var])
+#print(gsearch3.grid_scores_, gsearch3.best_params_, gsearch3.best_score_)
+
+"""
+Gamma --> 0.0
+"""
+
+print("\nXGBoost classifier tuned values(xgb2)")
+
+xgb2 = XGBClassifier(
+ learning_rate =0.1,
+ n_estimators=1000,
+ max_depth=7,
+ min_child_weight=3,
+ gamma=0.0,
+ subsample=0.8,
+ colsample_bytree=0.8,
+ objective= 'binary:logistic',
+ nthread=4,
+ scale_pos_weight=1,
+ seed=27)
+
+modelfit(xgb1, train, predictor_var, outcome_var)
+
+
+## Tune subsample and colsample_bytree
+print("\nTunning subsample and colsample_bytree")
+
+param_test4 = {
+ #'subsample':[i/10.0 for i in range(1,5)],         ## 0.2 optimum
+ 'subsample':[i/100.0 for i in range(10,30,5)],      ## checking in interval 0.05
+ #'colsample_bytree':[i/10.0 for i in range(1,5)]   ## 0.2 optimum
+ 'colsample_bytree':[i/100.0 for i in range(10,30,5)]   ## checking in interval 0.05
+}
+gsearch4 = GridSearchCV(estimator = XGBClassifier( learning_rate =0.1, n_estimators=177, max_depth=7,
+ min_child_weight=3, gamma=0, subsample=0.8, colsample_bytree=0.8,
+ objective= 'binary:logistic', nthread=4, scale_pos_weight=1,seed=27), 
+ param_grid = param_test4, scoring='roc_auc',n_jobs=1,iid=False, cv=5)
+#gsearch4.fit(train[predictor_var],train[outcome_var])
+#print(gsearch4.grid_scores_, gsearch4.best_params_, gsearch4.best_score_)
+
+"""
+subsample --> 0.2
+colsample_bytree --> 0.2
+"""
+
+# Tune Regularization parameter
+print("\nTunning Regularization Parameters:")
+param_test6 = {
+ 'reg_alpha':[1e-5, 1e-2, 0.1, 1, 100]
+}
+gsearch6 = GridSearchCV(estimator = XGBClassifier( learning_rate =0.1, n_estimators=177, max_depth=7,
+ min_child_weight=3, gamma=0.0, subsample=0.2, colsample_bytree=0.2,
+ objective= 'binary:logistic', nthread=4, scale_pos_weight=1,seed=27), 
+ param_grid = param_test6, scoring='roc_auc',n_jobs=1,iid=False, cv=5)
+#gsearch6.fit(train[predictor_var],train[outcome_var])
+#print(gsearch6.grid_scores_, gsearch6.best_params_, gsearch6.best_score_)
+
+## Since CV score of optimum reg_alpha is less thus we try values closer to previous reg_alpha
+
+param_test7 = {
+ 'reg_alpha':[0, 0.05, 0.1, 0.15, 0.2]
+}
+gsearch6 = GridSearchCV(estimator = XGBClassifier( learning_rate =0.1, n_estimators=177, max_depth=7,
+ min_child_weight=3, gamma=0.0, subsample=0.2, colsample_bytree=0.2,
+ objective= 'binary:logistic', nthread=4, scale_pos_weight=1,seed=27), 
+ param_grid = param_test6, scoring='roc_auc',n_jobs=1,iid=False, cv=5)
+#gsearch6.fit(train[predictor_var],train[outcome_var])
+#print(gsearch6.grid_scores_, gsearch6.best_params_, gsearch6.best_score_)
+
+"""
+reg_alpha --> 0.1
+"""
+print("\nXGBoost classifier tuned values(xgb3)")
+xgb3 = XGBClassifier(
+ learning_rate =0.1,
+ n_estimators=1000,
+ max_depth=7,
+ min_child_weight=3,
+ gamma=0,
+ subsample=0.2,
+ colsample_bytree=0.2,
+ reg_alpha=0.1,
+ objective= 'binary:logistic',
+ nthread=4,
+ scale_pos_weight=1,
+ seed=27)
+modelfit(xgb3, train, predictor_var, outcome_var)
+"""
+Result(xgb3):
+    
+Model Report
+Accuracy : 0.8306
+AUC Score (Train): 0.822139
+"""
+
+print("\nXGBoost classifier reduced learning rate(xgb4)")
+xgb4 = XGBClassifier(
+ learning_rate =0.01,
+ n_estimators=1000,
+ max_depth=7,
+ min_child_weight=3,
+ gamma=0,
+ subsample=0.2,
+ colsample_bytree=0.2,
+ reg_alpha=0.1,
+ objective= 'binary:logistic',
+ nthread=4,
+ scale_pos_weight=1,
+ seed=27)
+#modelfit(xgb3, train, predictor_var, outcome_var)
+
+print("\nAll parameters tunning:\n")
+param_test1 = {
+ 'max_depth': np.arange(3,10,2),        #Optimum value comes out as "7"
+ #'max_depth': [6, 7, 8],             #Checking for smaller interval around optimum value
+ 'min_child_weight': np.arange(1,6,2),   #Optimum value comes out as "3"
+ #'min_child_weight': [2, 3, 4]      #Checking for smaller interval around optimum value
+ 'subsample':[i/10.0 for i in range(1,5)],
+ 'colsample_bytree':[i/10.0 for i in range(1,5)],
+ 'reg_alpha':[1e-5, 1e-2, 0.1, 1, 100],
+ 'gamma':[i/10.0 for i in range(0,5)]
+}
+gsearch1 = GridSearchCV(estimator = XGBClassifier(objective= 'binary:logistic', nthread=4, seed=27), 
+ param_grid = param_test1, scoring='roc_auc',n_jobs=1,iid=False, cv=5)
+gsearch1.fit(train[predictor_var],train[outcome_var])
+#print(gsearch1.grid_scores_, gsearch1.best_params_, gsearch1.best_score_)
+#print(gsearch1.cv_results_)
+"""
+Optimum parameters:
+    'subsample': 0.2
+    'colsample_bytree': 0.2, 
+    'gamma': 0.1, 
+    'max_depth': 5, 
+    'min_child_weight': 3, 
+    'reg_alpha': 1, 
+"""
+
+print("\nXGBoost classifier simultaneous tunning(xgb5)")
+xgb5 = XGBClassifier(
+ learning_rate =0.1,
+ n_estimators=1000,
+ max_depth=5,
+ min_child_weight=3,
+ gamma=0.1,
+ subsample=0.2,
+ colsample_bytree=0.2,
+ reg_alpha=1,
+ objective= 'binary:logistic',
+ nthread=4,
+ scale_pos_weight=1,
+ seed=27)
+modelfit(xgb3, train, predictor_var, outcome_var)
+"""
+XGBoost classifier simultaneous tunning(xgb5)
+
+Model Report
+Accuracy : 0.8306
+AUC Score (Train): 0.822139
+"""
+
+sample = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/sample.csv")
+sample.Loan_ID = pd.read_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/test.csv").Loan_ID
+s = gsearch1.predict(test)
+sample.Loan_Status = s
+
+sample.Loan_Status[sample.Loan_Status==1] = 'Y'
+sample.Loan_Status[sample.Loan_Status==0] = 'N'
+
+sample.to_csv("/media/piyush/New Volume/Data Science/Loan Prediction/data/submission1.csv", index=False, header=True)
