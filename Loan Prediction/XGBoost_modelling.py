@@ -13,8 +13,8 @@ import xgboost as xgb
 ## sklearn wrapper for xgboost--> helps to use sklearn grid search with parallel processing.
 from xgboost.sklearn import XGBClassifier
 
-from sklearn import cross_validation, metrics   #Additional scklearn functions
-from sklearn.model_selection import GridSearchCV   #Perforing grid search
+from sklearn import cross_validation, metrics   #Additional sklearn functions
+from sklearn.model_selection import GridSearchCV   #Performing grid search
 
 import matplotlib.pylab as plt
 from matplotlib.pylab import rcParams

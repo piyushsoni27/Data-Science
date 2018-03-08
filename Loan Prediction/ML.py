@@ -83,7 +83,7 @@ predictor_var = ["Credit_History"]
 classification_model(model, train, predictor_var, outcome_var)
 
 predictor_var = ['Credit_History','Education','Married','Self_Employed','Property_Area']
-classification_model(model, train, predictor_var, outcome_var, test_data=test, submit=True, filepath="/media/piyush/New Volume/Data Science/Loan Prediction/data/logistic.csv")
+classification_model(model, train, predictor_var, outcome_var)
 
 ## Decision Tree
 print("\nDecision Tree:")
@@ -131,4 +131,4 @@ model = XGBClassifier()
 predictor_var = ['Credit_History', 'Dependents', 'Education', 'Gender', 'LoanAmount',
        'Loan_Amount_Term', 'Married', 'Property_Area',
        'Self_Employed', 'total_income']
-classification_model(model, train, predictor_var, outcome_var)
+classification_model(model, train, predictor_var, outcome_var, test_data=test, submit=True, filepath="/media/piyush/New Volume/Data Science/Loan Prediction/data/xgboost_default.csv")
