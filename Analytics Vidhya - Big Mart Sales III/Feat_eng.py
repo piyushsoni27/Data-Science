@@ -82,13 +82,6 @@ for i in cat_vars:
     
 train_final = total[:train_len]
 
-## Checking skewness of Sales Column
-train_final.Item_Outlet_Sales.skew()
-## Treating skewness lop1p transform was not enough to treat skewness thus boxcox transform is taken
-#sns.distplot(np.log1p(total.Item_Outlet_Sales[total.isTrain == 1]))
-sns.distplot(stats.boxcox(train_final.Item_Outlet_Sales)[0])
-
-
 test_final = total[train_len:]
 test_final.drop("Item_Outlet_Sales", axis=1, inplace=True)
 
