@@ -70,7 +70,7 @@ def regression_model(alg, data, predictors, target, n_fold=5, save=False, lambda
 train = pd.read_csv("/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Data/train_final.csv")
 test = pd.read_csv("/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Data/test_final.csv")
 
-
+train.drop("Unnamed: 0", inplace=True, axis=1)
 test.drop("Unnamed: 0", inplace=True, axis=1)
 
 
@@ -83,10 +83,7 @@ sns.distplot(boxcox(train.Item_Outlet_Sales)[0])
 train.Item_Outlet_Sales, lambda_ = boxcox(train.Item_Outlet_Sales + 1)
 
 
-predictors = ['Item_Fat_Content', 'Item_MRP', 'Item_Type',
-       'Item_Visibility', 'Item_Weight', 'Outlet_Identifier',
-       'Outlet_Location_Type', 'Outlet_Size', 'Outlet_Type',
-       'Outlet_Establishment_Year_from_2018', 'Item_Code', 'Item_Category']
+predictors = test.columns
 
 target = 'Item_Outlet_Sales'
 
@@ -126,7 +123,7 @@ pprint(random_grid)
 
 rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
 
-#rf_random.fit(train[predictors], train[target])
+rf_random.fit(train[predictors], train[target])
 """
 Best Params from RandomizedSearchCV:
 {'bootstrap': True,

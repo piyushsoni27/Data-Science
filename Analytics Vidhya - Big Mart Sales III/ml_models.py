@@ -20,7 +20,7 @@ from sklearn.cross_validation import KFold
 
 from matplotlib import pyplot as plt
 
-save = False
+save = True
 
 
 test_original = pd.read_csv("/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Data/test.csv")
@@ -67,7 +67,7 @@ def regression_model(alg, data, predictors, target, n_fold=5, save=False, lambda
 train = pd.read_csv("/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Data/train_final.csv")
 test = pd.read_csv("/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Data/test_final.csv")
 
-
+train.drop("Unnamed: 0", inplace=True, axis=1)
 test.drop("Unnamed: 0", inplace=True, axis=1)
 
 
@@ -80,14 +80,11 @@ sns.distplot(boxcox(train.Item_Outlet_Sales)[0])
 train.Item_Outlet_Sales, lambda_ = boxcox(train.Item_Outlet_Sales + 1)
 
 
-predictors = ['Item_Fat_Content', 'Item_MRP', 'Item_Type',
-       'Item_Visibility', 'Item_Weight', 'Outlet_Identifier',
-       'Outlet_Location_Type', 'Outlet_Size', 'Outlet_Type',
-       'Outlet_Establishment_Year_from_2018', 'Item_Code', 'Item_Category']
+predictors = test.columns
 
 target = 'Item_Outlet_Sales'
 
-## Baseline (LeaderBoard : 1773, without_skew : 1826)
+## Baseline (LeaderBoard : 1773, without_skew : 1826, one_hot : 1826)
 mean_sales = train.Item_Outlet_Sales.mean()
 
 base1 = test_original[['Item_Identifier', 'Outlet_Identifier']]
@@ -96,36 +93,36 @@ base1["Item_Outlet_Sales"] = inv_boxcox(mean_sales,lambda_)
 if(save):
     base1.to_csv("/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/mean_without_skew.csv", index=False)
 
-## Linear Regression (LeaderBoard : 1232, without_skew : 1206)
+## Linear Regression (LeaderBoard : 1232, without_skew : 1206, one hot encodeing : 1210)
 print("\nLinear :\n")
 lm = LinearRegression()
 regression_model(lm, train, predictors, target, save=save, test_df=test, lambda_=lambda_, file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/LinearRegression_without_skew.csv")
 
 
-## Ridge model (LeaderBoard : 1251, without_skew : 1245)
+## Ridge model (LeaderBoard : 1251, without_skew : 1245, one hot encodeing : 1224)
 print("\nRidge :\n")
 alg = Ridge(alpha=0.05,normalize=True)
 regression_model(alg, train, predictors, target, save=save, test_df=test, lambda_=lambda_, file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/RidgeRegression_without_skew.csv")
 coef2 = pd.Series(alg.coef_, predictors).sort_values()
 coef2.plot(kind='bar', title='Model Coefficients')
 
-## Decision Trees  (LeaderBoard : 1191, without_skew : 1204)
+## Decision Trees  (LeaderBoard : 1191, without_skew : 1204 ,one hot encoding : 1203)
 print("\nDecision Trees :\n")
 print("alg1:")
 alg = DecisionTreeRegressor(max_depth=15, min_samples_leaf=100)
 regression_model(alg, train, predictors, target, save=save, test_df=test, lambda_=lambda_, file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/DecisionTree_without_skew.csv")
 
-print("\nalg2:") ## (LeaderBoard : 1184, without_skew : 1199)
+print("\nalg2:") ## (LeaderBoard : 1184, without_skew : 1199, one hot encoding : 1199)
 alg = DecisionTreeRegressor(max_depth=8, min_samples_leaf=150)
 regression_model(alg, train, predictors, target, save=save, test_df=test, lambda_=lambda_, file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/DecisionTree1_without_skew.csv")
 
-## Random Forest (LeaderBoard : 1186, without_skew : 1198)
+## Random Forest (LeaderBoard : 1186, without_skew : 1198, one hot encoding : 1198)
 print("\nRandom Forest :\n")
 print("alg1:")
 alg = RandomForestRegressor(n_estimators=200,max_depth=5, min_samples_leaf=100,n_jobs=4)
 regression_model(alg, train, predictors, target, save=save, test_df=test, lambda_=lambda_, file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/RandomForest_without_skew.csv")
 
-print("\nalg2:") ## (LeaderBoard : 1184.79, without_skew : 1197)
+print("\nalg2:") ## (LeaderBoard : 1184.79, without_skew : 1197, one hot encoding : 1198)
 alg = RandomForestRegressor(n_estimators=400,max_depth=6, min_samples_leaf=100,n_jobs=4)
 regression_model(alg, train, predictors, target, save=save, test_df=test, lambda_=lambda_, file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/RandomForest1_without_skew.csv")
 
