@@ -123,7 +123,7 @@ pprint(random_grid)
 
 rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
 
-rf_random.fit(train[predictors], train[target])
+#rf_random.fit(train[predictors], train[target])
 """
 Best Params from RandomizedSearchCV:
 {'bootstrap': True,
@@ -134,7 +134,7 @@ Best Params from RandomizedSearchCV:
  'n_estimators': 200}
 """
 """
-if(save):       #(LeaderBoard : 1199)
+if(save):       #(LeaderBoard : 1199, one hot : 1205)
     file_path="/media/piyush/New Volume/Data Science/Analytics Vidhya - Big Mart Sales III/Submissions/RandomForest_RandomizedSearch_without_skew.csv"
 
     test_predictions = inv_boxcox(rf_random.predict(test[predictors]), lambda_)
