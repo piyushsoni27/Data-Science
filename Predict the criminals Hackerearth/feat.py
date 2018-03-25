@@ -15,6 +15,8 @@ from nltk.corpus import stopwords
 from sklearn.preprocessing import LabelEncoder
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
 from sklearn.metrics import accuracy_score,classification_report, precision_recall_curve, confusion_matrix
 
 #split into train and test
@@ -22,6 +24,9 @@ from sklearn.model_selection import train_test_split
 
 # Feature Scaling
 from sklearn.preprocessing import StandardScaler
+
+
+save = True
 
 ## Reading Data
 train = pd.read_csv("/media/piyush/New Volume/Data Science/Predict the criminals Hackerearth/Data/criminal_train.csv")
@@ -80,11 +85,32 @@ y_pred = logreg.predict(x_test)
 logreg_accy = round(accuracy_score(y_pred,y_test), 3)
 print (logreg_accy)
 
-test_pred = logreg.predict(test)
-file_path="/media/piyush/New Volume/Data Science/Predict the criminals Hackerearth/Submissions/baseline.csv"
 
+if(save):
+    test_pred = logreg.predict(test)
     
-base2 = test_orig[['PERID']]
-base2["Criminal"] = pd.Series(test_pred, dtype=int)
+    file_path="/media/piyush/New Volume/Data Science/Predict the criminals Hackerearth/Submissions/baseline.csv"
+    
+        
+    base2 = test_orig[['PERID']]
+    base2["Criminal"] = pd.Series(test_pred, dtype=int)
+    
+    base2.to_csv(file_path, index=False)
+    
+    
+svc = SVC(kernel="rbf")
+svc.fit(x_train,y_train)
+y_pred = svc.predict(x_test)
+svc_accy = round(accuracy_score(y_pred,y_test), 3)
+print (svc_accy)
 
-base2.to_csv(file_path, index=False)
+if(save):
+    test_pred = svc.predict(test)
+    
+    file_path="/media/piyush/New Volume/Data Science/Predict the criminals Hackerearth/Submissions/svm.csv"
+    
+        
+    base2 = test_orig[['PERID']]
+    base2["Criminal"] = pd.Series(test_pred, dtype=int)
+    
+    base2.to_csv(file_path, index=False)
