@@ -52,7 +52,7 @@ xtrain,xvalid,train_label,valid_label = train_test_split(xtrain, ytrain_one_hot,
 batch_size = 64
 epochs = 20
 num_classes = 10
-
+"""
 fashion_model = Sequential()
 fashion_model.add(Conv2D(32, kernel_size=(3, 3),activation='linear',input_shape=(28,28,1),padding='same'))
 fashion_model.add(LeakyReLU(alpha=0.1))
@@ -76,6 +76,8 @@ print(fashion_model.summary())
 
 fashion_train = fashion_model.fit(xtrain, train_label, batch_size=batch_size,epochs=epochs,verbose=1,validation_data=(xvalid, valid_label))
 
+fashion_model.save("fashion_model.h5py")
+
 test_eval = fashion_model.evaluate(xtest, ytest_one_hot, verbose=0)
 
 print('Test loss:', test_eval[0])
@@ -97,5 +99,54 @@ plt.plot(epochs, val_loss, 'b', label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 plt.show()
+"""
 
+fashion_model = Sequential()
+fashion_model.add(Conv2D(32, kernel_size=(3, 3),activation='linear',padding='same',input_shape=(28,28,1)))
+fashion_model.add(LeakyReLU(alpha=0.1))
+fashion_model.add(MaxPooling2D((2, 2),padding='same'))
+fashion_model.add(Dropout(0.25))
+fashion_model.add(Conv2D(64, (3, 3), activation='linear',padding='same'))
+fashion_model.add(LeakyReLU(alpha=0.1))
+fashion_model.add(MaxPooling2D(pool_size=(2, 2),padding='same'))
+fashion_model.add(Dropout(0.25))
+fashion_model.add(Conv2D(128, (3, 3), activation='linear',padding='same'))
+fashion_model.add(LeakyReLU(alpha=0.1))                  
+fashion_model.add(MaxPooling2D(pool_size=(2, 2),padding='same'))
+fashion_model.add(Dropout(0.4))
+fashion_model.add(Flatten())
+fashion_model.add(Dense(128, activation='linear'))
+fashion_model.add(LeakyReLU(alpha=0.1))           
+fashion_model.add(Dropout(0.3))
+fashion_model.add(Dense(num_classes, activation='softmax'))
+
+
+fashion_model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adam(),metrics=['accuracy'])
+
+fashion_train_dropout = fashion_model.fit(xtrain, train_label, batch_size=batch_size,epochs=epochs,verbose=1,validation_data=(xvalid, valid_label))
+
+fashion_model.save("fashion_model_dropout.h5py")
+
+test_eval = fashion_model.evaluate(xtest, ytest_one_hot, verbose=1)
+
+print('Test loss:', test_eval[0])
+print('Test accuracy:', test_eval[1])
+
+accuracy = fashion_train_dropout.history['acc']
+val_accuracy = fashion_train_dropout.history['val_acc']
+loss = fashion_train_dropout.history['loss']
+val_loss = fashion_train_dropout.history['val_loss']
+epochs = range(len(accuracy))
+plt.plot(epochs, accuracy, 'bo', label='Training accuracy')
+plt.plot(epochs, val_accuracy, 'b', label='Validation accuracy')
+plt.title('Training and validation accuracy')
+plt.legend()
+plt.figure()
+plt.plot(epochs, loss, 'bo', label='Training loss')
+plt.plot(epochs, val_loss, 'b', label='Validation loss')
+plt.title('Training and validation loss')
+plt.legend()
+plt.show()
+
+predicted_classes = fashion_model.predict(xtest)
 
