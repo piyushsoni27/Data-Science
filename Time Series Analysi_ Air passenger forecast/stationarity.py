@@ -68,7 +68,7 @@ date_parser: This specifies a function which converts an input string into datet
              Something similar to the dataparse function defined here can be used for 
              this purpose.
 """
-
+print(data.head())
 dateparse = lambda dates: pd.datetime.strptime(dates, '%Y-%m')
 data = pd.read_csv('AirPassengers.csv', parse_dates=['Month'], index_col='Month',date_parser=dateparse)
 
@@ -143,6 +143,8 @@ plt.plot(ts_log_diff)
 ts_log_diff.dropna(inplace=True)
 test_stationarity(ts_log_diff)
 
+## Decomposing 
+
 decomposition = seasonal_decompose(ts_log)
 
 trend = decomposition.trend
@@ -180,5 +182,8 @@ Critical Value (10%)          -2.579569e+00
 
 Test statistics is significantly lower than 1%.
 """
+print(ts_log_diff.index)
+
+ts_log_diff.to_csv("ts_log.csv")
 
 
