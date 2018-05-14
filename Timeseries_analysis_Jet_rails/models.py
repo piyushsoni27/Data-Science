@@ -25,3 +25,22 @@ plt.xlabel("Datetime")
 plt.ylabel("Passenger count")
 plt.legend(loc='best')
 plt.show()
+
+
+"""
+Baseline model (Naive):
+    In this we assume next expected output is equal to last observed point
+"""
+
+y_hat = valid_set.copy()
+
+#last observed value:
+y_hat["Naive"] = train_set.iloc[-1].Count
+
+plt.figure(figsize=(12,8))
+plt.plot(train_set.index, train_set['Count'], label='Train')
+plt.plot(valid_set.index,valid_set['Count'], label='Valid')
+plt.plot(y_hat.index,y_hat['Naive'], label='Naive Forecast')
+plt.legend(loc='best')
+plt.title("Naive Forecast")
+plt.show()
