@@ -59,6 +59,7 @@ weekly = train.resample('W').mean()
 monthly = train.resample('M').mean()
 daily = train.resample('D').mean()
 
+'''
 fig, axs= plt.subplots(4,1)
 
 hourly.Count.plot(figsize=(15,8), ax=axs[0])
@@ -67,6 +68,7 @@ weekly.Count.plot(figsize=(15,8), ax=axs[2])
 monthly.Count.plot(figsize=(15,8), ax=axs[3])
 
 plt.show()
+'''
 
 test.index = test.Datetime
 test.drop(["ID", "Datetime"], axis=1, inplace=True)
@@ -76,4 +78,5 @@ test.drop(["ID", "Datetime"], axis=1, inplace=True)
 test = test.resample("D").mean()
 train = daily.copy()
 
-
+train.to_csv("Data/train_new.csv", date_format = "%Y-%m-%d")
+test.to_csv("Data/test_new.csv", date_format = "%Y-%m-%d")
