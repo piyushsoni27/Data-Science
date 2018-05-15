@@ -12,10 +12,12 @@ from sklearn.metrics import mean_squared_error
 from math import sqrt
 
 from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
+import statsmodels.api as sm
 
 
 train = pd.read_csv("Data/train_new.csv", index_col="Datetime")
 test = pd.read_csv("Data/test_new.csv", index_col="Datetime")
+submission = pd.read_csv("submission.csv")
 
 train.index = pd.to_datetime(train.index, format="%Y-%m-%d")
 test.index = pd.to_datetime(test.index, format = "%Y-%m-%d")
@@ -117,3 +119,31 @@ plt.show()
 rms_SES = sqrt(mean_squared_error(valid_set.Count, y_hat.SES))
 
 print("RMS For SES : %f" % rms_SES)
+
+"""
+Holt Linear trend Model
+1. It is an extension of exponential smoothing, differene is that it remembers trend of the time series.
+
+-> Trend: which shows the trend in the time series, i.e., increasing or decreasing behaviour of the time series.
+-> Seasonal: which tells us about the seasonality in the time series.
+-> Residual: which is obtained by removing any trend or seasonality in the time series.
+"""
+
+sm.tsa.seasonal_decompose(train_set.Count).plot()
+
+y_hat_avg = valid_set.copy()
+fit1 = Holt(np.asarray(train_set['Count'])).fit(smoothing_level = 0.3,smoothing_slope = 0.1)
+y_hat_avg['Holt_linear'] = fit1.forecast(len(valid_set))
+
+plt.figure(figsize=(13,8))
+plt.plot(train_set['Count'], label='Train')
+plt.plot(valid_set['Count'], label='Valid')
+plt.plot(y_hat_avg['Holt_linear'], label='Holt_linear')
+plt.legend(loc='best')
+plt.show()
+
+## Daily predictions: must be converted to hourly predictions
+test.prediction = fit1.forecast(len(test))
+rms_holt = sqrt(mean_squared_error(valid_set.Count, y_hat_avg.Holt_linear))
+
+print("RMS For holt : %f" % rms_holt)
