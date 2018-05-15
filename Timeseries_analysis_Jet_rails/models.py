@@ -8,6 +8,10 @@ Created on Mon May 14 16:18:34 2018
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
 
 
 train = pd.read_csv("Data/train_new.csv", index_col="Datetime")
@@ -19,13 +23,14 @@ test.index = pd.to_datetime(test.index, format = "%Y-%m-%d")
 train_set = train.loc['2012-08-25' : '2014-06-24']
 valid_set = train.loc['2014-06-25' : '2014-09-25']
 
+"""
 train_set.Count.plot(figsize=(15,8), title= 'Daily Ridership', fontsize=14, label='train')
 valid_set.Count.plot(figsize=(15,8), title= 'Daily Ridership', fontsize=14, label='valid')
 plt.xlabel("Datetime")
 plt.ylabel("Passenger count")
 plt.legend(loc='best')
 plt.show()
-
+"""
 
 """
 Baseline model (Naive):
@@ -44,3 +49,71 @@ plt.plot(y_hat.index,y_hat['Naive'], label='Naive Forecast')
 plt.legend(loc='best')
 plt.title("Naive Forecast")
 plt.show()
+
+rms_naive = sqrt(mean_squared_error(valid_set.Count, y_hat.Naive))
+
+print("RMS of Naive : %f" % rms_naive)
+
+"""
+Moving Average (Rolling Mean):
+    For last 10, 20 and 50 observations
+"""
+
+y_hat_avg = valid_set.copy()
+y_hat_avg["moving_avg"] = train_set.Count.rolling(10).mean().iloc[-10]
+plt.figure(figsize=(15,5)) 
+plt.plot(train_set['Count'], label='Train')
+plt.plot(valid_set['Count'], label='Valid')
+plt.plot(y_hat_avg['moving_avg'], label='Moving Average Forecast using 10 observations')
+plt.legend(loc='best')
+plt.show()
+
+rms_moving_avg_10 = sqrt(mean_squared_error(valid_set.Count, y_hat_avg.moving_avg))
+
+y_hat_avg = valid_set.copy()
+y_hat_avg["moving_avg"] = train_set.Count.rolling(20).mean().iloc[-10]
+plt.figure(figsize=(15,5)) 
+plt.plot(train_set['Count'], label='Train')
+plt.plot(valid_set['Count'], label='Valid')
+plt.plot(y_hat_avg['moving_avg'], label='Moving Average Forecast using 10 observations')
+plt.legend(loc='best')
+plt.show()
+
+rms_moving_avg_20 = sqrt(mean_squared_error(valid_set.Count, y_hat_avg.moving_avg))
+
+y_hat_avg = valid_set.copy()
+y_hat_avg["moving_avg"] = train_set.Count.rolling(50).mean().iloc[-10]
+plt.figure(figsize=(15,5)) 
+plt.plot(train_set['Count'], label='Train')
+plt.plot(valid_set['Count'], label='Valid')
+plt.plot(y_hat_avg['moving_avg'], label='Moving Average Forecast using 10 observations')
+plt.legend(loc='best')
+plt.show()
+
+rms_moving_avg_50 = sqrt(mean_squared_error(valid_set.Count, y_hat_avg.moving_avg))
+
+print("RMS for Moving avg for last 10 itr : %f" % rms_moving_avg_10)
+print("RMS for Moving avg for last 20 itr : %f" % rms_moving_avg_20)
+print("RMS for Moving avg for last 50 itr : %f" % rms_moving_avg_50)
+
+
+"""
+Exponential Smoothing
+1. In this technique, we assign larger weights to more recent observations than to
+    observations from the distant past.
+2. The weights decrease exponentially as observations come from further in the past, 
+    the smallest weights are associated with the oldest observations.
+"""
+y_hat = valid_set.copy()
+model = SimpleExpSmoothing(np.asarray(train_set.Count)).fit(smoothing_level = 0.6, optimized=False)
+y_hat['SES'] = model.forecast(len(valid_set))
+plt.figure(figsize=(16,8))
+plt.plot(train_set['Count'], label='Train')
+plt.plot(valid_set['Count'], label='Valid')
+plt.plot(y_hat['SES'], label='SES')
+plt.legend(loc='best')
+plt.show()
+
+rms_SES = sqrt(mean_squared_error(valid_set.Count, y_hat.SES))
+
+print("RMS For SES : %f" % rms_SES)
