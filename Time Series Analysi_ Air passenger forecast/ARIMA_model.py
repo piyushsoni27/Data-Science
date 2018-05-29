@@ -22,6 +22,11 @@ ts_log_diff.dropna(inplace=True)
 
 lag_acf = acf(ts_log_diff, nlags=20)
 lag_pacf = pacf(ts_log_diff, nlags=20, method='ols')
+
+"""
+ACF : AutoCorrelation Fn. it shows indirect relationship b/w lagged version of itself with effect of intermediate lags considered.
+PACF: Partial Correlation fn. is ACF but without effects of intermediate lags considered.
+"""
                                                                    
 #Plot ACF: 
 plt.subplot(121) 
@@ -47,9 +52,28 @@ p – The lag value where the PACF chart crosses the upper confidence interval f
 q – The lag value where the ACF chart crosses the upper confidence interval for the first time. If you notice closely, in this case q=2.
 
 """
+plt.close()
 
+
+plt.subplot(311)
 # AR model
 model = ARIMA(ts_log, order=(2, 1, 0))  
+results_AR = model.fit(disp=-1)  
+plt.plot(ts_log_diff)
+plt.plot(results_AR.fittedvalues, color='red')
+plt.title('RSS: %.4f'% sum((results_AR.fittedvalues-ts_log_diff)**2))
+
+plt.subplot(312)
+# MA model
+model = ARIMA(ts_log, order=(0, 1, 2))  
+results_MA = model.fit(disp=-1)  
+plt.plot(ts_log_diff)
+plt.plot(results_MA.fittedvalues, color='red')
+plt.title('RSS: %.4f'% sum((results_MA.fittedvalues-ts_log_diff)**2))
+
+plt.subplot(313)
+# AR model
+model = ARIMA(ts_log, order=(2, 1, 2))  
 results_AR = model.fit(disp=-1)  
 plt.plot(ts_log_diff)
 plt.plot(results_AR.fittedvalues, color='red')
