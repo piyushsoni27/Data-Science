@@ -20,6 +20,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D        ##Conv2D --> for images
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
+from sklearn.metrics import classification_report
 
 xtrain, ytrain = mnist_reader.load_mnist('Data', kind='train')
 xtest, ytest = mnist_reader.load_mnist('Data', kind='t10k')
@@ -150,3 +151,23 @@ plt.show()
 
 predicted_classes = fashion_model.predict(xtest)
 
+predicted_classes = np.argmax(np.round(predicted_classes),axis=1)
+
+correct = np.where(predicted_classes==ytest)[0]
+print("Found %d correct labels" % len(correct))
+for i, correct in enumerate(correct[:9]):
+    plt.subplot(3,3,i+1)
+    plt.imshow(xtest[correct].reshape(28,28), cmap='gray', interpolation='none')
+    plt.title("Predicted {}, Class {}".format(predicted_classes[correct], ytest[correct]))
+    plt.tight_layout()
+    
+incorrect = np.where(predicted_classes!=ytest)[0]
+print("Found %d incorrect labels" % len(incorrect))
+for i, incorrect in enumerate(incorrect[:9]):
+    plt.subplot(3,3,i+1)
+    plt.imshow(xtest[incorrect].reshape(28,28), cmap='gray', interpolation='none')
+    plt.title("Predicted {}, Class {}".format(predicted_classes[incorrect], ytest[incorrect]))
+    plt.tight_layout()
+    
+target_names = ["Class {}".format(i) for i in range(num_classes)]
+print(classification_report(ytest, predicted_classes, target_names=target_names))
