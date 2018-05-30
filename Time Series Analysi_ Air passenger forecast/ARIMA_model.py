@@ -15,6 +15,7 @@ from statsmodels.tsa.arima_model import ARIMA
 
 ts_log = pd.read_csv("ts_log.csv", header=None, names = ["Month", '#Passengers' ], index_col=0, squeeze=True)
 
+dateparse = lambda dates: pd.datetime.strptime(dates, '%Y-%m')
 data = pd.read_csv('AirPassengers.csv', parse_dates=['Month'], index_col='Month',date_parser=dateparse)
 
 ts = data['#Passengers']                                                         
@@ -83,6 +84,8 @@ plt.plot(ts_log_diff)
 plt.plot(results_ARIMA.fittedvalues, color='red')
 plt.title('RSS: %.4f'% sum((results_ARIMA.fittedvalues-ts_log_diff)**2))
 
+plt.close()
+
 predictions_ARIMA_diff = pd.Series(results_ARIMA.fittedvalues, copy=True)
 print(predictions_ARIMA_diff.head())
 
@@ -92,7 +95,7 @@ print(predictions_ARIMA_diff_cumsum.head())
 
 predictions_ARIMA_log = pd.Series(ts_log.iloc[0], index=ts_log.index)
 predictions_ARIMA_log = predictions_ARIMA_log.add(predictions_ARIMA_diff_cumsum,fill_value=0)
-predictions_ARIMA_log.head()
+print(predictions_ARIMA_log.head())
 
 predictions_ARIMA = np.exp(predictions_ARIMA_log)
 plt.plot(ts)
