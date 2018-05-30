@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Apr 17 09:56:01 2018
-
 @author: p.soni
 """
 
@@ -91,7 +90,6 @@ Number of Observations Used    130.000000
 Critical Value (1%)             -3.481682
 Critical Value (5%)             -2.884042
 Critical Value (10%)            -2.578770
-
 Though the variation in standard deviation is small, mean is clearly increasing
  with time and this is not a stationary series. Also, the test statistic is way
  more than the critical values. Note that the signed values should be compared 
@@ -130,7 +128,6 @@ Eliminating Trend and Seasonality
 The simple trend reduction techniques discussed before don’t work in all cases, 
 particularly the ones with high seasonality. Lets discuss two ways of removing 
 trend and seasonality:
-
 Differencing – taking the differece with a particular time lag
 Decomposition – modeling both trend and seasonality and removing them from the model.
 """
@@ -179,11 +176,8 @@ Number of Observations Used    1.220000e+02
 Critical Value (1%)           -3.485122e+00
 Critical Value (5%)           -2.885538e+00
 Critical Value (10%)          -2.579569e+00
-
 Test statistics is significantly lower than 1%.
 """
-print(ts_log_diff.index)
+#print(ts_log_diff.index)
 
-ts_log_diff.to_csv("ts_log.csv")
-
-
+ts_log.to_csv("ts_log.csv")
